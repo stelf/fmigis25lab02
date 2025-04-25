@@ -1,0 +1,55 @@
+                                                                                        QUERY PLAN
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ HashAggregate  (cost=32726742.43..32726744.43 rows=200 width=532) (actual time=8490.466..8490.471 rows=24 loops=1)
+   Group Key: lg.district
+   Batches: 1  Memory Usage: 40kB
+   Buffers: shared hit=507680
+   CTE lamp_buffer_union
+     ->  Nested Loop  (cost=0.28..600947.22 rows=47754 width=48) (actual time=0.238..1319.611 rows=89914 loops=1)
+           Buffers: shared hit=9026
+           ->  Seq Scan on adm_rayoni  (cost=0.00..4.24 rows=24 width=25806) (actual time=0.008..0.033 rows=24 loops=1)
+                 Buffers: shared hit=4
+           ->  Index Scan using idx_ul_osvetlenie_geom on ul_osvetlenie  (cost=0.28..167.33 rows=9 width=40) (actual time=0.268..9.969 rows=3746 loops=24)
+                 Index Cond: (geom @ adm_rayoni.geom)
+                 Filter: (((condition)::text = ANY ('{"много добро",отлично,добро}'::text[])) AND st_contains(adm_rayoni.geom, geom))
+                 Rows Removed by Filter: 6836
+                 Buffers: shared hit=8913
+   CTE lit_grouped
+     ->  GroupAggregate  (cost=3885971.16..32065364.07 rows=2197496 width=536) (actual time=4506.980..8451.882 rows=37395 loops=1)
+           Group Key: ou.id, u.district
+           Buffers: shared hit=499008
+           ->  Incremental Sort  (cost=3885971.16..4008833.89 rows=2197496 width=748) (actual time=4506.798..4679.647 rows=260449 loops=1)
+                 Sort Key: ou.id, u.district
+                 Presorted Key: ou.id
+                 Full-sort Groups: 6786  Sort Method: quicksort  Average Memory: 102kB  Peak Memory: 200kB
+                 Pre-sorted Groups: 519  Sort Method: quicksort  Average Memory: 152kB  Peak Memory: 525kB
+                 Buffers: shared hit=469528
+                 ->  Merge Join  (cost=3885969.10..3919161.63 rows=2197496 width=748) (actual time=4506.758..4574.678 rows=260449 loops=1)
+                       Merge Cond: (r.id = ou.id)
+                       Buffers: shared hit=433602
+                       ->  Sort  (cost=3880806.95..3886300.69 rows=2197496 width=650) (actual time=4492.454..4511.590 rows=260449 loops=1)
+                             Sort Key: r.id
+                             Sort Method: quicksort  Memory: 121477kB
+                             Buffers: shared hit=432464
+                             ->  Nested Loop  (cost=0.28..3010893.99 rows=2197496 width=650) (actual time=0.303..4400.304 rows=260449 loops=1)
+                                   Buffers: shared hit=432464
+                                   ->  CTE Scan on lamp_buffer_union u  (cost=0.00..955.08 rows=47754 width=548) (actual time=0.239..1362.198 rows=89914 loops=1)
+                                         Buffers: shared hit=9026
+                                   ->  Index Scan using idx_osi_ulici_26_osm_geom on osi_ulici_26_osm r  (cost=0.28..62.98 rows=5 width=102) (actual time=0.024..0.033 rows=3 loops=89914)
+                                         Index Cond: (geom && u.geom)
+                                         Filter: st_intersects(geom, u.geom)
+                                         Rows Removed by Filter: 2
+                                         Buffers: shared hit=423438
+                       ->  Sort  (cost=5162.16..5277.20 rows=46017 width=102) (actual time=14.297..18.411 rows=46016 loops=1)
+                             Sort Key: ou.id
+                             Sort Method: quicksort  Memory: 7395kB
+                             Buffers: shared hit=1138
+                             ->  Seq Scan on osi_ulici_26_osm ou  (cost=0.00..1598.17 rows=46017 width=102) (actual time=0.016..5.058 rows=46017 loops=1)
+                                   Buffers: shared hit=1138
+   ->  CTE Scan on lit_grouped lg  (cost=0.00..43949.92 rows=2197496 width=532) (actual time=4506.982..8468.437 rows=37395 loops=1)
+         Buffers: shared hit=499008
+ Planning:
+   Buffers: shared hit=12
+ Planning Time: 0.538 ms
+ Execution Time: 8499.203 ms
+(52 rows)

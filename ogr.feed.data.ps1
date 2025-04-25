@@ -1,8 +1,8 @@
 # PowerShell script: Find ogr2ogr.exe, check PostgreSQL support, build DSN from .env, and import GeoJSON
 
 param(
-    [string]$geojson = "ul_osv_osvetitelno_tqlo_26_dti_20171100.geojson",
-    [string]$table = "ul_osvetlenie"
+    [string]$geojson = "data\osi_ulici_26_osm_20180000.geojson",
+    [string]$table = "osi_ulici_26_osm"
 )
 
 
@@ -91,4 +91,4 @@ Write-Host -ForegroundColor Cyan "Target table: $table"
 Write-Host -ForegroundColor Cyan "PostgreSQL DSN: postgresql://$($pgVars.PGUSER):<password_hidden>@$($pgVars.PGHOST):$($pgVars.PGPORT)/$($pgVars.PGDATABASE)"
 
 # Execute the ogr2ogr command
-&$ogr2ogrPg -progress -f PostgreSQL "PG:$dsn" $geojson -nln $table -lco GEOMETRY_NAME=geom -lco FID=id -nlt MULTIPOINT
+&$ogr2ogrPg -progress -f PostgreSQL "PG:$dsn" $geojson -nln $table -lco GEOMETRY_NAME=geom -lco FID=id -nlt MultiLineString
